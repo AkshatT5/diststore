@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DistStore</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #007AFF;
+            --secondary-color: #5AC8FA;
+            --background-color: #F2F2F7;
+            --text-color: #1C1C1E;
+            --error-color: #FF3B30;
+            --success-color: #34C759;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        h1 {
+            font-size: 48px;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 40px;
+            color: var(--primary-color);
+        }
+
+        .card {
+            background-color: #FFFFFF;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--secondary-color);
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        input[type="text"], input[type="file"] {
+            font-size: 16px;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #E5E5EA;
+            border-radius: 8px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus, input[type="file"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        button {
+            background-color: var(--primary-color);
+            color: #FFFFFF;
+            font-size: 18px;
+            font-weight: 600;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        #message {
+            margin-top: 30px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .success {
+            background-color: var(--success-color);
+            color: #FFFFFF;
+        }
+
+        .error {
+            background-color: var(--error-color);
+            color: #FFFFFF;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 36px;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>DistStore</h1>
+        
+        <div class="card">
+            <h2>Store File</h2>
+            <form id="storeForm">
+                <input type="text" id="storeKey" placeholder="File Key" required>
+                <input type="file" id="storeFile" required>
+                <button type="submit">Store</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Get File</h2>
+            <form id="getForm">
+                <input type="text" id="getKey" placeholder="File Key" required>
+                <button type="submit">Get</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Delete File</h2>
+            <form id="deleteForm">
+                <input type="text" id="deleteKey" placeholder="File Key" required>
+                <button type="submit">Delete</button>
+            </form>
+        </div>
+
+        <div id="message"></div>
+    </div>
+
+    <script>
+        document.getElementById('storeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('key', document.getElementById('storeKey').value);
+            formData.append('file', document.getElementById('storeFile').files[0]);
+            try {
+                const response = await axios.post('/api/store', formData);
+                showMessage(response.data, 'success');
+            } catch (error) {
+                showMessage(`Error: ${error.response.data}`, 'error');
+            }
+        });
+
+        document.getElementById('getForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const key = document.getElementById('getKey').value;
+            window.location.href = `/api/get?key=${encodeURIComponent(key)}`;
+        });
+
+        document.getElementById('deleteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const key = document.getElementById('deleteKey').value;
+            try {
+                const response = await axios.delete(`/api/delete?key=${encodeURIComponent(key)}`);
+                showMessage(response.data.message, 'success');
+            } catch (error) {
+                showMessage(`Error: ${error.response.data}`, 'error');
+            }
+        });
+
+        function showMessage(text, type) {
+            const messageElement = document.getElementById('message');
+            messageElement.innerText = text;
+            messageElement.className = type;
+            setTimeout(() => {
+                messageElement.innerText = '';
+                messageElement.className = '';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
